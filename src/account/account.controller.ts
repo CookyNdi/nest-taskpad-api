@@ -8,9 +8,10 @@ import {
   AccountResponse,
   AccountUpdateAvatarRequest,
   AccountUpdateEmail,
+  AccountUpdateName,
   AccountUpdatePassword,
 } from '../model/account.model';
-import { Auth } from 'src/common/auth/auth.decorator';
+import { Auth } from '../common/auth/auth.decorator';
 import { Account } from '@prisma/client';
 
 @Controller('/api/account')
@@ -87,6 +88,19 @@ export class AccountController {
     return {
       data: result,
       message: 'Your Email has been updated',
+    };
+  }
+
+  @Patch('/change-name')
+  @HttpCode(200)
+  async updateName(
+    @Auth() account: Account,
+    @Body() request: AccountUpdateName,
+  ): Promise<WebResponse<AccountResponse>> {
+    const result = await this.accountService.updateName(account, request);
+    return {
+      data: result,
+      message: 'Your Name has been updated',
     };
   }
 }

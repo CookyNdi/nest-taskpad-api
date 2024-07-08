@@ -10,6 +10,7 @@ import {
   AccountResponse,
   AccountUpdateAvatarRequest,
   AccountUpdateEmail,
+  AccountUpdateName,
   AccountUpdatePassword,
 } from '../model/account.model';
 import { AccountValidation } from './account.validation';
@@ -212,6 +213,24 @@ export class AccountService {
       data: {
         email: updateEmailRequest.email,
       },
+    });
+
+    return this.toAccountResponse(account, 'required');
+  }
+
+  async updateName(
+    account: Account,
+    request: AccountUpdateName,
+  ): Promise<AccountResponse> {
+    console.log(
+      `AccountService.updateName - account : (${account.name}, ${account.email}) - request : (${request.name})`,
+    );
+    const updateNameRequest: AccountUpdateName =
+      this.validationService.validate(AccountValidation.UPDATE_NAME, request);
+
+    account = await this.prismaService.account.update({
+      where: { id: account.id },
+      data: { name: updateNameRequest.name },
     });
 
     return this.toAccountResponse(account, 'required');

@@ -26,4 +26,7 @@ export class AccountValidation {
     email: z.string().min(1).max(100).email(),
     old_email: z.string().min(1).max(100).email(),
   });
+  static readonly UPDATE_NAME: ZodType = z.object({
+    name: z.string().min(1).max(100),
+  });
 }

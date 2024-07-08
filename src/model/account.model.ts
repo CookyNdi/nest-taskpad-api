@@ -32,3 +32,7 @@ export class AccountUpdateEmail {
   old_email: string;
   password: string;
 }
+
+export class AccountUpdateName {
+  name: string;
+}
