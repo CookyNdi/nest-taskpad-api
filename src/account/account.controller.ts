@@ -7,6 +7,7 @@ import {
   AccountRegisterRequest,
   AccountResponse,
   AccountUpdateAvatarRequest,
+  AccountUpdateEmail,
   AccountUpdatePassword,
 } from '../model/account.model';
 import { Auth } from 'src/common/auth/auth.decorator';
@@ -73,6 +74,19 @@ export class AccountController {
     return {
       data: result,
       message: 'Your Password has been updated',
+    };
+  }
+
+  @Patch('/change-email')
+  @HttpCode(200)
+  async updateEmail(
+    @Auth() account: Account,
+    @Body() request: AccountUpdateEmail,
+  ): Promise<WebResponse<AccountResponse>> {
+    const result = await this.accountService.updateEmail(account, request);
+    return {
+      data: result,
+      message: 'Your Email has been updated',
     };
   }
 }

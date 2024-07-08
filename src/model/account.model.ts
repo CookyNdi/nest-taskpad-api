@@ -26,3 +26,9 @@ export class AccountUpdatePassword {
   password: string;
   old_password: string;
 }
+
+export class AccountUpdateEmail {
+  email: string;
+  old_email: string;
+  password: string;
+}
