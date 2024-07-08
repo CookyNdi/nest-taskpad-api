@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 
 import { AccountService } from './account.service';
 import { WebResponse } from '../model/web.model';
 import {
+  AccountLoginRequest,
   AccountRegisterRequest,
   AccountResponse,
 } from '../model/account.model';
@@ -19,6 +20,19 @@ export class AccountController {
     return {
       data: result,
       message: 'Account Created Succcessfully!',
+    };
+  }
+
+  @Post('/login')
+  @HttpCode(200)
+  async login(
+    @Body() request: AccountLoginRequest,
+  ): Promise<WebResponse<AccountResponse>> {
+    const result = await this.accountService.login(request);
+
+    return {
+      data: result,
+      message: 'Login Successfully',
     };
   }
 }

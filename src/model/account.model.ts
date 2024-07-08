@@ -3,12 +3,17 @@ export class AccountResponse {
   email: string;
   image_url?: string;
   token?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export class AccountRegisterRequest {
   name: string;
+  email: string;
+  password: string;
+}
+
+export class AccountLoginRequest {
   email: string;
   password: string;
 }
