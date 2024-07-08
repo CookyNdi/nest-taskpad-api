@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Patch,
+  Post,
+} from '@nestjs/common';
 
 import { AccountService } from './account.service';
 import { WebResponse } from '../model/web.model';
@@ -101,6 +109,16 @@ export class AccountController {
     return {
       data: result,
       message: 'Your Name has been updated',
+    };
+  }
+
+  @Delete('/current')
+  async logout(
+    @Auth() account: Account,
+  ): Promise<WebResponse<AccountResponse>> {
+    await this.accountService.logout(account);
+    return {
+      message: 'You have ben logouted',
     };
   }
 }

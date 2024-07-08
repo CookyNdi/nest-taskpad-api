@@ -235,4 +235,17 @@ export class AccountService {
 
     return this.toAccountResponse(account, 'required');
   }
+
+  async logout(account: Account): Promise<boolean> {
+    console.log(
+      `AccountService.logout - account : (${account.name}, ${account.email}) `,
+    );
+
+    await this.prismaService.account.update({
+      where: { id: account.id },
+      data: { token: null },
+    });
+
+    return true;
+  }
 }
