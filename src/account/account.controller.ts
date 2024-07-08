@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
 
 import { AccountService } from './account.service';
 import { WebResponse } from '../model/web.model';
@@ -7,6 +7,8 @@ import {
   AccountRegisterRequest,
   AccountResponse,
 } from '../model/account.model';
+import { Auth } from 'src/common/auth/auth.decorator';
+import { Account } from '@prisma/client';
 
 @Controller('/api/account')
 export class AccountController {
@@ -33,6 +35,16 @@ export class AccountController {
     return {
       data: result,
       message: 'Login Successfully',
+    };
+  }
+
+  @Get('/current')
+  async getCurrentLogin(
+    @Auth() account: Account,
+  ): Promise<WebResponse<AccountResponse>> {
+    const result = await this.accountService.getCurrentLogin(account);
+    return {
+      data: result,
     };
   }
 }

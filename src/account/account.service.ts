@@ -102,4 +102,11 @@ export class AccountService {
 
     return this.toAccountResponse(account, 'withToken');
   }
+
+  async getCurrentLogin(account: Account): Promise<AccountResponse> {
+    console.log(
+      `AccountService.get - account : (${account.name}, ${account.email})`,
+    );
+    return this.toAccountResponse(account);
+  }
 }
