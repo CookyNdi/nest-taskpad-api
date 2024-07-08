@@ -9,6 +9,7 @@ import {
   AccountRegisterRequest,
   AccountResponse,
   AccountUpdateAvatarRequest,
+  AccountUpdatePassword,
 } from '../model/account.model';
 import { AccountValidation } from './account.validation';
 import { Account } from '@prisma/client';
@@ -124,7 +125,7 @@ export class AccountService {
     request: AccountUpdateAvatarRequest,
   ): Promise<AccountResponse> {
     console.log(
-      `AccountService.get - account : (${account.name}, ${account.email}) - request (${request.image_url})`,
+      `AccountService.updateAvatar - account : (${account.name}, ${account.email}) - request (${request.image_url})`,
     );
 
     const updateAvatarRequest: AccountUpdateAvatarRequest =
@@ -136,5 +137,39 @@ export class AccountService {
     });
 
     return this.toAccountResponse(account, 'withOutToken');
+  }
+
+  async updatePassword(
+    account: Account,
+    request: AccountUpdatePassword,
+  ): Promise<AccountResponse> {
+    console.log(
+      `AccountService.UpdatePassword - account : (${account.name}, ${account.email})`,
+    );
+    const updatePasswordRequest: AccountUpdatePassword =
+      this.validationService.validate(
+        AccountValidation.UPDATE_PASSWORD,
+        request,
+      );
+
+    const isPasswordMatch = await bcrypt.compare(
+      updatePasswordRequest.old_password,
+      account.password,
+    );
+
+    if (!isPasswordMatch) {
+      throw new HttpException('Your old password is wrong!', 400);
+    }
+
+    updatePasswordRequest.password = await bcrypt.hash(
+      updatePasswordRequest.password,
+      10,
+    );
+
+    account = await this.prismaService.account.update({
+      where: { id: account.id },
+      data: { password: updatePasswordRequest.password },
+    });
+    return this.toAccountResponse(account, 'required');
   }
 }

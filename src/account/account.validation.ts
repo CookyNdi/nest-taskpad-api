@@ -17,4 +17,8 @@ export class AccountValidation {
       .max(256)
       .regex(/^https:\/\/utfs\.io\/.*$/, { message: 'Invalid image url' }),
   });
+  static readonly UPDATE_PASSWORD: ZodType = z.object({
+    password: z.string().min(1).max(20),
+    old_password: z.string().min(1).max(20),
+  });
 }

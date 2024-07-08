@@ -7,6 +7,7 @@ import {
   AccountRegisterRequest,
   AccountResponse,
   AccountUpdateAvatarRequest,
+  AccountUpdatePassword,
 } from '../model/account.model';
 import { Auth } from 'src/common/auth/auth.decorator';
 import { Account } from '@prisma/client';
@@ -59,6 +60,19 @@ export class AccountController {
     return {
       data: result,
       message: 'Your Avatar has been updated',
+    };
+  }
+
+  @Patch('/change-password')
+  @HttpCode(200)
+  async updatePassword(
+    @Auth() account: Account,
+    @Body() request: AccountUpdatePassword,
+  ): Promise<WebResponse<AccountResponse>> {
+    const result = await this.accountService.updatePassword(account, request);
+    return {
+      data: result,
+      message: 'Your Password has been updated',
     };
   }
 }

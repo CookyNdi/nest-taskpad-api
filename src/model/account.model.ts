@@ -21,3 +21,8 @@ export class AccountLoginRequest {
 export class AccountUpdateAvatarRequest {
   image_url: string;
 }
+
+export class AccountUpdatePassword {
+  password: string;
+  old_password: string;
+}
