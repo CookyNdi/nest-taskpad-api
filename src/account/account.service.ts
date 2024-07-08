@@ -8,11 +8,12 @@ import {
   AccountLoginRequest,
   AccountRegisterRequest,
   AccountResponse,
+  AccountUpdateAvatarRequest,
 } from '../model/account.model';
 import { AccountValidation } from './account.validation';
 import { Account } from '@prisma/client';
 
-type ResponseType = 'required' | 'withToken';
+type ResponseType = 'required' | 'withToken' | 'withOutToken';
 
 @Injectable()
 export class AccountService {
@@ -33,6 +34,14 @@ export class AccountService {
           name: account.name,
           email: account.email,
           token: account.token,
+        };
+      case 'withOutToken':
+        return {
+          name: account.name,
+          email: account.email,
+          image_url: account.image_url,
+          createdAt: account.createdAt,
+          updatedAt: account.updatedAt,
         };
       default:
         return {
@@ -107,6 +116,25 @@ export class AccountService {
     console.log(
       `AccountService.get - account : (${account.name}, ${account.email})`,
     );
-    return this.toAccountResponse(account);
+    return this.toAccountResponse(account, 'withOutToken');
+  }
+
+  async updateAvatar(
+    account: Account,
+    request: AccountUpdateAvatarRequest,
+  ): Promise<AccountResponse> {
+    console.log(
+      `AccountService.get - account : (${account.name}, ${account.email}) - request (${request.image_url})`,
+    );
+
+    const updateAvatarRequest: AccountUpdateAvatarRequest =
+      this.validationService.validate(AccountValidation.AVATAR, request);
+
+    account = await this.prismaService.account.update({
+      where: { id: account.id },
+      data: { image_url: updateAvatarRequest.image_url },
+    });
+
+    return this.toAccountResponse(account, 'withOutToken');
   }
 }

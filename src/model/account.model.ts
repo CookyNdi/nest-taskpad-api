@@ -17,3 +17,7 @@ export class AccountLoginRequest {
   email: string;
   password: string;
 }
+
+export class AccountUpdateAvatarRequest {
+  image_url: string;
+}
