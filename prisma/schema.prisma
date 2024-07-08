@@ -12,3 +12,67 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Account {
+  id        String      @id @default(cuid())
+  name      String
+  email     String      @unique
+  password  String
+  image_url String?
+  token     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Workspace Workspace[]
+
+  @@map("accounts")
+}
+
+model Account_Verification {
+  id     String   @id @default(cuid())
+  email  String
+  token  String
+  expire DateTime
+
+  @@map("account_verification")
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  accountId String
+  account   Account @relation(references: [id], fields: [accountId], onDelete: Cascade)
+  Board     Board[]
+
+  @@map("workspace")
+}
+
+model Board {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspaceId String
+  workspace   Workspace @relation(references: [id], fields: [workspaceId], onDelete: Cascade)
+  Tasks       Tasks[]
+
+  @@map("boards")
+}
+
+model Tasks {
+  id        String   @id @default(cuid())
+  title     String
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  boardId String
+  board   Board  @relation(references: [id], fields: [boardId], onDelete: Cascade)
+
+  @@map("tasks")
+}
