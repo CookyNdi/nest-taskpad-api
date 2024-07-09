@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Account, Workspace } from '@prisma/client';
+import { Account, Board, Workspace } from '@prisma/client';
 
 import { PrismaService } from '../common/prisma/prisma.service';
 import { ValidationService } from '../common/validation/validation.service';
@@ -17,14 +17,28 @@ export class WorkspaceService {
     private validationService: ValidationService,
   ) {}
 
-  toWorkspaceResponse(workspace: Workspace): WorkspaceResponse {
-    return {
-      id: workspace.id,
-      title: workspace.title,
-      description: workspace.description,
-      createdAt: workspace.createdAt,
-      updatedAt: workspace.createdAt,
-    };
+  toWorkspaceResponse(
+    workspace: Workspace & { Board?: Board[] },
+    isIncludesBoard?: boolean,
+  ): WorkspaceResponse {
+    if (!isIncludesBoard) {
+      return {
+        id: workspace.id,
+        title: workspace.title,
+        description: workspace.description,
+        createdAt: workspace.createdAt,
+        updatedAt: workspace.createdAt,
+      };
+    } else {
+      return {
+        id: workspace.id,
+        title: workspace.title,
+        description: workspace.description,
+        createdAt: workspace.createdAt,
+        updatedAt: workspace.createdAt,
+        Board: workspace.Board,
+      };
+    }
   }
 
   async existingWorkspace(workspaceId: string): Promise<Workspace> {
@@ -100,12 +114,15 @@ export class WorkspaceService {
     console.log(
       `WorkspaceService.getById - account : (${account.name}, ${account.email}) - workspaceid : (${workspaceId})`,
     );
-    const workspace = await this.existingWorkspace(workspaceId);
+    const workspace = await this.prismaService.workspace.findUnique({
+      where: { id: workspaceId, accountId: account.id },
+      include: { Board: true },
+    });
     if (account.id !== workspace.accountId) {
       throw new HttpException('Unauthorized!', 401);
     }
 
-    return this.toWorkspaceResponse(workspace);
+    return this.toWorkspaceResponse(workspace, true);
   }
 
   async getAll(account: Account): Promise<WorkspaceResponse[]> {
