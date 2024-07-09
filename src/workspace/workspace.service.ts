@@ -70,6 +70,10 @@ export class WorkspaceService {
     );
     let workspace = await this.existingWorkspace(workspaceId);
 
+    if (account.id !== workspace.accountId) {
+      throw new HttpException('Unauthorized!', 401);
+    }
+
     const updateRequest: WorkspaceUpdateRequest =
       this.validationService.validate(WorkspaceValidation.UPDATE, request);
 
@@ -87,6 +91,18 @@ export class WorkspaceService {
       },
       data: workspace,
     });
+    return this.toWorkspaceResponse(workspace);
+  }
+
+  async getById(
+    account: Account,
+    workspaceId: string,
+  ): Promise<WorkspaceResponse> {
+    const workspace = await this.existingWorkspace(workspaceId);
+    if (account.id !== workspace.accountId) {
+      throw new HttpException('Unauthorized!', 401);
+    }
+
     return this.toWorkspaceResponse(workspace);
   }
 }

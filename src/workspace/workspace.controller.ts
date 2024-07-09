@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 
 import { WorkspaceService } from './workspace.service';
 import { WebResponse } from '../model/web.model';
@@ -40,6 +48,18 @@ export class WorkspaceController {
     return {
       data: result,
       message: 'Workspace has been updated!',
+    };
+  }
+
+  @Get('/:workspaceId')
+  @HttpCode(200)
+  async getById(
+    @Auth() account: Account,
+    @Param('workspaceId') workspaceId: string,
+  ): Promise<WebResponse<WorkspaceResponse>> {
+    const result = await this.workspaceService.getById(account, workspaceId);
+    return {
+      data: result,
     };
   }
 }
