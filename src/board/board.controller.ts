@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 
 import { BoardService } from './board.service';
 import { WebResponse } from '../model/web.model';
@@ -21,6 +29,7 @@ export class BoardController {
   }
 
   @Patch('/:boardId')
+  @HttpCode(200)
   async update(
     @Param('workspaceId') workspaceId: string,
     @Param('boardId') boardId: string,
@@ -34,6 +43,19 @@ export class BoardController {
     return {
       data: result,
       message: 'Board has been updated!',
+    };
+  }
+
+  @Delete('/:boardId')
+  @HttpCode(200)
+  async delete(
+    @Param('workspaceId') workspaceId: string,
+    @Param('boardId') boardId: string,
+  ): Promise<WebResponse<BoardResponse>> {
+    const result = await this.boardService.delete(workspaceId, boardId);
+    return {
+      data: result,
+      message: 'Board has been deleted!',
     };
   }
 }

@@ -96,4 +96,22 @@ export class BoardService {
     });
     return this.toBoardResponse(board);
   }
+
+  async delete(workspaceId: string, boardId: string): Promise<BoardResponse> {
+    const workspace =
+      await this.workspaceService.existingWorkspace(workspaceId);
+    let board = await this.existingBoard(boardId);
+
+    if (workspace.id !== board.workspaceId) {
+      throw new HttpException('Invalid Workspace Id Or Board Id', 401);
+    }
+
+    board = await this.prismaService.board.delete({
+      where: {
+        workspaceId: workspaceId,
+        id: boardId,
+      },
+    });
+    return this.toBoardResponse(board);
+  }
 }
