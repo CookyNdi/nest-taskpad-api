@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -77,6 +78,19 @@ export class WorkspaceController {
     }
     return {
       data: result,
+    };
+  }
+
+  @Delete('/:workspaceId')
+  @HttpCode(200)
+  async delete(
+    @Auth() account: Account,
+    @Param('workspaceId') workspaceId: string,
+  ): Promise<WebResponse<WorkspaceResponse>> {
+    const result = await this.workspaceService.delete(account, workspaceId);
+    return {
+      data: result,
+      message: 'Workspace has been deleted!',
     };
   }
 }

@@ -118,4 +118,26 @@ export class WorkspaceService {
 
     return workspaces.map((workspace) => this.toWorkspaceResponse(workspace));
   }
+
+  async delete(
+    account: Account,
+    workspaceId: string,
+  ): Promise<WorkspaceResponse> {
+    console.log(
+      `WorkspaceService.delete - account : (${account.name}, ${account.email}) - workspaceId : (${workspaceId})`,
+    );
+    let workspace = await this.existingWorkspace(workspaceId);
+    if (account.id !== workspace.accountId) {
+      throw new HttpException('Unauthorized!', 401);
+    }
+
+    workspace = await this.prismaService.workspace.delete({
+      where: {
+        accountId: account.id,
+        id: workspaceId,
+      },
+    });
+
+    return this.toWorkspaceResponse(workspace);
+  }
 }
