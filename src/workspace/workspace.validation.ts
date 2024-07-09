@@ -6,7 +6,7 @@ export class WorkspaceValidation {
     description: z.string().max(100).optional(),
   });
   static readonly UPDATE: ZodType = z.object({
-    title: z.string().min(1).max(100),
+    title: z.string().max(100).optional(),
     description: z.string().max(100).optional(),
   });
 }

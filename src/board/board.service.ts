@@ -3,7 +3,11 @@ import { Board } from '@prisma/client';
 
 import { PrismaService } from '../common/prisma/prisma.service';
 import { ValidationService } from '../common/validation/validation.service';
-import { BoardCreateRequest, BoardResponse } from '../model/board.model';
+import {
+  BoardCreateRequest,
+  BoardResponse,
+  BoardUpdateRequest,
+} from '../model/board.model';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { BoardValidation } from './board.validation';
 
@@ -26,7 +30,7 @@ export class BoardService {
     };
   }
 
-  async existingWorkspace(boardId: string): Promise<Board> {
+  async existingBoard(boardId: string): Promise<Board> {
     const board = await this.prismaService.board.findUnique({
       where: { id: boardId },
     });
@@ -47,7 +51,7 @@ export class BoardService {
 
     await this.workspaceService.existingWorkspace(workspaceId);
 
-    const createRequest = this.validationService.validate(
+    const createRequest: BoardCreateRequest = this.validationService.validate(
       BoardValidation.CREATE,
       request,
     );
@@ -57,6 +61,38 @@ export class BoardService {
         workspaceId: workspaceId,
         ...createRequest,
       },
+    });
+    return this.toBoardResponse(board);
+  }
+
+  async update(
+    workspaceId: string,
+    request: BoardUpdateRequest,
+    boardId: string,
+  ): Promise<BoardResponse> {
+    console.log(
+      `BoardService.update - request : (${request.title}, ${request.description}) - workspaceId : (${workspaceId}) - boardId : (${boardId})`,
+    );
+
+    await this.workspaceService.existingWorkspace(workspaceId);
+    let board = await this.existingBoard(boardId);
+
+    const updateRequest: BoardUpdateRequest = this.validationService.validate(
+      BoardValidation.CREATE,
+      request,
+    );
+
+    if (updateRequest.title) {
+      board.title = updateRequest.title;
+    }
+
+    if (updateRequest.description) {
+      board.description = updateRequest.description;
+    }
+
+    board = await this.prismaService.board.update({
+      where: { workspaceId: workspaceId, id: boardId },
+      data: board,
     });
     return this.toBoardResponse(board);
   }
