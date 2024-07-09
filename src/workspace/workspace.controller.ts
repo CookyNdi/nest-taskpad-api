@@ -15,7 +15,7 @@ import {
   WorkspaceCreateRequest,
   WorkspaceResponse,
 } from '../model/workspace.model';
-import { Auth } from 'src/common/auth/auth.decorator';
+import { Auth } from '../common/auth/auth.decorator';
 import { Account } from '@prisma/client';
 
 @Controller('/api/workspace')
