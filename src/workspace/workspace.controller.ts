@@ -62,4 +62,21 @@ export class WorkspaceController {
       data: result,
     };
   }
+
+  @Get()
+  @HttpCode(200)
+  async getAll(
+    @Auth() account: Account,
+  ): Promise<WebResponse<WorkspaceResponse[]>> {
+    const result = await this.workspaceService.getAll(account);
+    if (result.length < 1) {
+      return {
+        data: result,
+        message: 'Wokrspace not found, please make at least one workspace',
+      };
+    }
+    return {
+      data: result,
+    };
+  }
 }

@@ -20,7 +20,6 @@ export class WorkspaceService {
   toWorkspaceResponse(workspace: Workspace): WorkspaceResponse {
     return {
       id: workspace.id,
-      accountId: workspace.accountId,
       title: workspace.title,
       description: workspace.description,
       createdAt: workspace.createdAt,
@@ -44,7 +43,7 @@ export class WorkspaceService {
     request: WorkspaceCreateRequest,
   ): Promise<WorkspaceResponse> {
     console.log(
-      `WorkspaceService.create - request : (${request.title}, ${request.description})`,
+      `WorkspaceService.create - request : (${request.title}, ${request.description}) - account : (${account.name}, ${account.email})`,
     );
 
     const createRequest: WorkspaceCreateRequest =
@@ -66,7 +65,7 @@ export class WorkspaceService {
     workspaceId: string,
   ): Promise<WorkspaceResponse> {
     console.log(
-      `WorkspaceService.update - request : (${request.title}, ${request.description})`,
+      `WorkspaceService.update - request : (${request.title}, ${request.description})  - account : (${account.name}, ${account.email}) - workspaceid : (${workspaceId})`,
     );
     let workspace = await this.existingWorkspace(workspaceId);
 
@@ -98,11 +97,25 @@ export class WorkspaceService {
     account: Account,
     workspaceId: string,
   ): Promise<WorkspaceResponse> {
+    console.log(
+      `WorkspaceService.getById - account : (${account.name}, ${account.email}) - workspaceid : (${workspaceId})`,
+    );
     const workspace = await this.existingWorkspace(workspaceId);
     if (account.id !== workspace.accountId) {
       throw new HttpException('Unauthorized!', 401);
     }
 
     return this.toWorkspaceResponse(workspace);
+  }
+
+  async getAll(account: Account): Promise<WorkspaceResponse[]> {
+    console.log(
+      `WorkspaceService.getAll - account : (${account.name}, ${account.email})`,
+    );
+    const workspaces = await this.prismaService.workspace.findMany({
+      where: { accountId: account.id },
+    });
+
+    return workspaces.map((workspace) => this.toWorkspaceResponse(workspace));
   }
 }
