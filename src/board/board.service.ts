@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Board } from '@prisma/client';
+import { Account, Board } from '@prisma/client';
 
 import { PrismaService } from '../common/prisma/prisma.service';
 import { ValidationService } from '../common/validation/validation.service';
@@ -66,16 +66,22 @@ export class BoardService {
   }
 
   async update(
+    account: Account,
     workspaceId: string,
     request: BoardUpdateRequest,
     boardId: string,
   ): Promise<BoardResponse> {
     console.log(
-      `BoardService.update - request : (${request.title}, ${request.description}) - workspaceId : (${workspaceId}) - boardId : (${boardId})`,
+      `BoardService.update - request : (${request.title}, ${request.description}) - workspaceId : (${workspaceId}) - boardId : (${boardId}) - account : (${account.name}, ${account.email})`,
     );
 
-    await this.workspaceService.existingWorkspace(workspaceId);
+    const workspace =
+      await this.workspaceService.existingWorkspace(workspaceId);
     let board = await this.existingBoard(boardId);
+
+    if (account.id !== workspace.accountId) {
+      throw new HttpException('Unauthorized!', 401);
+    }
 
     const updateRequest: BoardUpdateRequest = this.validationService.validate(
       BoardValidation.CREATE,
@@ -97,10 +103,21 @@ export class BoardService {
     return this.toBoardResponse(board);
   }
 
-  async delete(workspaceId: string, boardId: string): Promise<BoardResponse> {
+  async delete(
+    account: Account,
+    workspaceId: string,
+    boardId: string,
+  ): Promise<BoardResponse> {
+    console.log(
+      `BoardService.delete - workspaceId : (${workspaceId}) - boardId : (${boardId})  - account : (${account.name}, ${account.email})`,
+    );
     const workspace =
       await this.workspaceService.existingWorkspace(workspaceId);
     let board = await this.existingBoard(boardId);
+
+    if (account.id !== workspace.accountId) {
+      throw new HttpException('Unauthorized!', 401);
+    }
 
     if (workspace.id !== board.workspaceId) {
       throw new HttpException('Invalid Workspace Id Or Board Id', 401);
