@@ -10,7 +10,8 @@ import { TaskController } from '../task/task.controller';
 import { WorkspaceMiddleware } from './workspace/workspace.middleware';
 import { BoardMiddleware } from './board/board.middleware';
 import { TaskMiddleware } from './task/task.middleware';
-import { WorkspaceController } from 'src/workspace/workspace.controller';
+import { WorkspaceController } from '../workspace/workspace.controller';
+import { BoardController } from '../board/board.controller';
 
 @Global()
 @Module({
@@ -29,6 +30,9 @@ export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AuthMiddleware).forRoutes('/api/*');
     consumer.apply(WorkspaceMiddleware).forRoutes(WorkspaceController);
+    consumer
+      .apply(WorkspaceMiddleware, BoardMiddleware)
+      .forRoutes(BoardController);
     consumer
       .apply(WorkspaceMiddleware, BoardMiddleware, TaskMiddleware)
       .forRoutes(TaskController);

@@ -7,12 +7,13 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { Account } from '@prisma/client';
+import { Account, Board } from '@prisma/client';
 
 import { BoardService } from './board.service';
 import { WebResponse } from '../model/web.model';
 import { BoardCreateRequest, BoardResponse } from '../model/board.model';
 import { Auth } from '../common/auth/auth.decorator';
+import { BoardData } from '../common/board/board.decorator';
 
 @Controller('/api/workspace/:workspaceId/board')
 export class BoardController {
@@ -35,14 +36,14 @@ export class BoardController {
   async update(
     @Auth() account: Account,
     @Param('workspaceId') workspaceId: string,
-    @Param('boardId') boardId: string,
+    @BoardData() board: Board,
     @Body() request: BoardCreateRequest,
   ): Promise<WebResponse<BoardResponse>> {
     const result = await this.boardService.update(
       account,
       workspaceId,
       request,
-      boardId,
+      board,
     );
     return {
       data: result,
@@ -55,13 +56,9 @@ export class BoardController {
   async delete(
     @Auth() account: Account,
     @Param('workspaceId') workspaceId: string,
-    @Param('boardId') boardId: string,
+    @BoardData() board: Board,
   ): Promise<WebResponse<BoardResponse>> {
-    const result = await this.boardService.delete(
-      account,
-      workspaceId,
-      boardId,
-    );
+    const result = await this.boardService.delete(account, workspaceId, board);
     return {
       data: result,
       message: 'Board has been deleted!',

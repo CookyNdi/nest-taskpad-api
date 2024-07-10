@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Account, Board } from '@prisma/client';
 
 import { PrismaService } from '../common/prisma/prisma.service';
@@ -8,7 +8,6 @@ import {
   BoardResponse,
   BoardUpdateRequest,
 } from '../model/board.model';
-import { WorkspaceService } from '../workspace/workspace.service';
 import { BoardValidation } from './board.validation';
 
 @Injectable()
@@ -16,7 +15,6 @@ export class BoardService {
   constructor(
     private prismaService: PrismaService,
     private validationService: ValidationService,
-    private workspaceService: WorkspaceService,
   ) {}
 
   toBoardResponse(board: Board): BoardResponse {
@@ -30,17 +28,6 @@ export class BoardService {
     };
   }
 
-  async existingBoard(boardId: string): Promise<Board> {
-    const board = await this.prismaService.board.findUnique({
-      where: { id: boardId },
-    });
-
-    if (!board) {
-      throw new HttpException('Board not found!', 404);
-    }
-    return board;
-  }
-
   async create(
     workspaceId: string,
     request: BoardCreateRequest,
@@ -48,8 +35,6 @@ export class BoardService {
     console.log(
       `BoardService.create - request : (${request.title}, ${request.description}) - workspaceId : (${workspaceId})`,
     );
-
-    await this.workspaceService.existingWorkspace(workspaceId);
 
     const createRequest: BoardCreateRequest = this.validationService.validate(
       BoardValidation.CREATE,
@@ -69,19 +54,11 @@ export class BoardService {
     account: Account,
     workspaceId: string,
     request: BoardUpdateRequest,
-    boardId: string,
+    board: Board,
   ): Promise<BoardResponse> {
     console.log(
-      `BoardService.update - request : (${request.title}, ${request.description}) - workspaceId : (${workspaceId}) - boardId : (${boardId}) - account : (${account.name}, ${account.email})`,
+      `BoardService.update - request : (${request.title}, ${request.description}) - workspaceId : (${workspaceId}) - board : (${board.title}) - account : (${account.name}, ${account.email})`,
     );
-
-    const workspace =
-      await this.workspaceService.existingWorkspace(workspaceId);
-    let board = await this.existingBoard(boardId);
-
-    if (account.id !== workspace.accountId) {
-      throw new HttpException('Unauthorized!', 401);
-    }
 
     const updateRequest: BoardUpdateRequest = this.validationService.validate(
       BoardValidation.CREATE,
@@ -91,13 +68,12 @@ export class BoardService {
     if (updateRequest.title) {
       board.title = updateRequest.title;
     }
-
     if (updateRequest.description) {
       board.description = updateRequest.description;
     }
 
     board = await this.prismaService.board.update({
-      where: { workspaceId: workspaceId, id: boardId },
+      where: { workspaceId: workspaceId, id: board.id },
       data: board,
     });
     return this.toBoardResponse(board);
@@ -106,27 +82,16 @@ export class BoardService {
   async delete(
     account: Account,
     workspaceId: string,
-    boardId: string,
+    board: Board,
   ): Promise<BoardResponse> {
     console.log(
-      `BoardService.delete - workspaceId : (${workspaceId}) - boardId : (${boardId})  - account : (${account.name}, ${account.email})`,
+      `BoardService.delete - workspaceId : (${workspaceId}) - board : (${board.title})  - account : (${account.name}, ${account.email})`,
     );
-    const workspace =
-      await this.workspaceService.existingWorkspace(workspaceId);
-    let board = await this.existingBoard(boardId);
-
-    if (account.id !== workspace.accountId) {
-      throw new HttpException('Unauthorized!', 401);
-    }
-
-    if (workspace.id !== board.workspaceId) {
-      throw new HttpException('Invalid Workspace Id Or Board Id', 401);
-    }
 
     board = await this.prismaService.board.delete({
       where: {
         workspaceId: workspaceId,
-        id: boardId,
+        id: board.id,
       },
     });
     return this.toBoardResponse(board);

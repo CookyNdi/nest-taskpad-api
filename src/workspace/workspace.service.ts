@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Account, Board, Tasks, Workspace } from '@prisma/client';
 
 import { PrismaService } from '../common/prisma/prisma.service';
@@ -39,17 +39,6 @@ export class WorkspaceService {
         Board: workspace.Board,
       };
     }
-  }
-
-  async existingWorkspace(workspaceId: string): Promise<Workspace> {
-    const workspace = await this.prismaService.workspace.findUnique({
-      where: { id: workspaceId },
-    });
-
-    if (!workspace) {
-      throw new HttpException('Workspace not found!', 404);
-    }
-    return workspace;
   }
 
   async create(
