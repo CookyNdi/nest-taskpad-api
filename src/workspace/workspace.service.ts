@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Account, Board, Workspace } from '@prisma/client';
+import { Account, Board, Tasks, Workspace } from '@prisma/client';
 
 import { PrismaService } from '../common/prisma/prisma.service';
 import { ValidationService } from '../common/validation/validation.service';
@@ -18,7 +18,7 @@ export class WorkspaceService {
   ) {}
 
   toWorkspaceResponse(
-    workspace: Workspace & { Board?: Board[] },
+    workspace: Workspace & { Board?: (Board & { Tasks: Tasks[] })[] },
     isIncludesBoard?: boolean,
   ): WorkspaceResponse {
     if (!isIncludesBoard) {
@@ -111,7 +111,19 @@ export class WorkspaceService {
     );
     const workspace = await this.prismaService.workspace.findUnique({
       where: { id: workspaceId, accountId: account.id },
-      include: { Board: true },
+      include: {
+        Board: {
+          select: {
+            id: true,
+            workspaceId: true,
+            title: true,
+            description: true,
+            createdAt: true,
+            updatedAt: true,
+            Tasks: true,
+          },
+        },
+      },
     });
 
     return this.toWorkspaceResponse(workspace, true);

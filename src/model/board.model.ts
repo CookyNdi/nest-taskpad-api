@@ -1,3 +1,5 @@
+import { TaskResponse } from './task.model';
+
 export class BoardResponse {
   id: string;
   workspaceId: string;
@@ -5,6 +7,7 @@ export class BoardResponse {
   description: string;
   createdAt: Date;
   updatedAt: Date;
+  Tasks?: TaskResponse[];
 }
 
 export class BoardCreateRequest {
