@@ -36,3 +36,7 @@ export class AccountUpdateEmail {
 export class AccountUpdateName {
   name: string;
 }
+
+export class AccountEmailVerificationRequest {
+  token: string;
+}

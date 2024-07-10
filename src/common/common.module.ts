@@ -12,6 +12,7 @@ import { BoardMiddleware } from './board/board.middleware';
 import { TaskMiddleware } from './task/task.middleware';
 import { WorkspaceController } from '../workspace/workspace.controller';
 import { BoardController } from '../board/board.controller';
+import { ResendService } from './resend/resend.service';
 
 @Global()
 @Module({
@@ -23,8 +24,9 @@ import { BoardController } from '../board/board.controller';
       provide: APP_FILTER,
       useClass: ErrorFilter,
     },
+    ResendService,
   ],
-  exports: [PrismaService, ValidationService],
+  exports: [PrismaService, ValidationService, ResendService],
 })
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

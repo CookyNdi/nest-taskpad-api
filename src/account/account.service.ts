@@ -1,10 +1,12 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { Account } from '@prisma/client';
 import { v7 as uuid } from 'uuid';
 
 import { PrismaService } from '../common/prisma/prisma.service';
 import { ValidationService } from '../common/validation/validation.service';
 import {
+  AccountEmailVerificationRequest,
   AccountLoginRequest,
   AccountRegisterRequest,
   AccountResponse,
@@ -14,7 +16,7 @@ import {
   AccountUpdatePassword,
 } from '../model/account.model';
 import { AccountValidation } from './account.validation';
-import { Account } from '@prisma/client';
+import { ResendService } from '../common/resend/resend.service';
 
 type ResponseType = 'required' | 'withToken' | 'withOutToken';
 
@@ -23,6 +25,7 @@ export class AccountService {
   constructor(
     private prismaService: PrismaService,
     private validationService: ValidationService,
+    private resendService: ResendService,
   ) {}
 
   toAccountResponse(account: Account, type?: ResponseType): AccountResponse {
@@ -79,13 +82,23 @@ export class AccountService {
 
     await this.existingEmailCheck(registerRequest.email);
 
-    // TODO : varify email using resend
-
     registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
     const account = await this.prismaService.account.create({
       data: registerRequest,
     });
+
+    const account_Verification =
+      await this.prismaService.account_Verification.create({
+        data: {
+          email: account.email,
+          expire: new Date(),
+          token: uuid(),
+        },
+      });
+
+    this.resendService.sendMail(account.email, account_Verification.token);
+
     return this.toAccountResponse(account, 'required');
   }
 
@@ -105,6 +118,36 @@ export class AccountService {
       throw new HttpException('Email or Password invalid!', 401);
     }
 
+    if (!existingAccount.emailVerified) {
+      const existingAccountVerification =
+        await this.prismaService.account_Verification.findFirst({
+          where: { email: existingAccount.email },
+        });
+
+      const hasExpired =
+        new Date(existingAccountVerification.expire) < new Date();
+      if (!existingAccountVerification || hasExpired) {
+        const account_Verification =
+          await this.prismaService.account_Verification.create({
+            data: {
+              email: existingAccount.email,
+              expire: new Date(),
+              token: uuid(),
+            },
+          });
+        this.resendService.sendMail(
+          existingAccount.email,
+          account_Verification.token,
+        );
+        throw new HttpException('Confirmation email sent!', 400);
+      } else {
+        throw new HttpException(
+          'Check your email for get verification url!',
+          400,
+        );
+      }
+    }
+
     const isValidPassword = await bcrypt.compare(
       loginRequest.password,
       existingAccount.password,
@@ -120,6 +163,49 @@ export class AccountService {
     });
 
     return this.toAccountResponse(account, 'withToken');
+  }
+
+  async emailVerification(
+    request: AccountEmailVerificationRequest,
+  ): Promise<AccountResponse> {
+    console.log(
+      `AccountService.emailVerification - request : (${request.token})`,
+    );
+
+    const emailVerificationRequest: AccountEmailVerificationRequest =
+      this.validationService.validate(
+        AccountValidation.EMAIL_VERIFICATION,
+        request,
+      );
+
+    const accountVerification =
+      await this.prismaService.account_Verification.findFirst({
+        where: { token: emailVerificationRequest.token },
+      });
+
+    if (!accountVerification) {
+      throw new HttpException('Token does not exist!', 400);
+    }
+
+    const hasExpired = new Date(accountVerification.expire) < new Date();
+    if (hasExpired) {
+      throw new HttpException('Token has expired!', 400);
+    }
+
+    let account = await this.prismaService.account.findUnique({
+      where: { email: accountVerification.email },
+    });
+
+    if (!account) {
+      throw new HttpException('Email does not exist!', 400);
+    }
+
+    account = await this.prismaService.account.update({
+      where: { id: account.id },
+      data: { emailVerified: true },
+    });
+
+    return this.toAccountResponse(account, 'required');
   }
 
   async getCurrentLogin(account: Account): Promise<AccountResponse> {

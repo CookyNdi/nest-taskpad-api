@@ -29,4 +29,7 @@ export class AccountValidation {
   static readonly UPDATE_NAME: ZodType = z.object({
     name: z.string().min(1).max(100),
   });
+  static readonly EMAIL_VERIFICATION: ZodType = z.object({
+    token: z.string().min(1).max(100),
+  });
 }

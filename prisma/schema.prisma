@@ -14,15 +14,16 @@ datasource db {
 }
 
 model Account {
-  id        String      @id @default(cuid())
-  name      String
-  email     String      @unique
-  password  String
-  image_url String?
-  token     String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  Workspace Workspace[]
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  password      String
+  image_url     String?
+  token         String?
+  emailVerified Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  Workspace     Workspace[]
 
   @@map("accounts")
 }

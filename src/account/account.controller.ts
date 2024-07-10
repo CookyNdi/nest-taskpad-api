@@ -11,6 +11,7 @@ import {
 import { AccountService } from './account.service';
 import { WebResponse } from '../model/web.model';
 import {
+  AccountEmailVerificationRequest,
   AccountLoginRequest,
   AccountRegisterRequest,
   AccountResponse,
@@ -33,7 +34,7 @@ export class AccountController {
     const result = await this.accountService.register(request);
     return {
       data: result,
-      message: 'Account Created Succcessfully!',
+      message: 'Confirmation email sent!',
     };
   }
 
@@ -47,6 +48,19 @@ export class AccountController {
     return {
       data: result,
       message: 'Login Successfully',
+    };
+  }
+
+  @Post('/verification-email')
+  @HttpCode(200)
+  async emailVerification(
+    @Body() request: AccountEmailVerificationRequest,
+  ): Promise<WebResponse<AccountResponse>> {
+    const result = await this.accountService.emailVerification(request);
+
+    return {
+      data: result,
+      message: 'Email verified!',
     };
   }
 
