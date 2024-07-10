@@ -76,16 +76,11 @@ export class WorkspaceService {
   async update(
     account: Account,
     request: WorkspaceUpdateRequest,
-    workspaceId: string,
+    workspace: Workspace,
   ): Promise<WorkspaceResponse> {
     console.log(
-      `WorkspaceService.update - request : (${request.title}, ${request.description})  - account : (${account.name}, ${account.email}) - workspaceid : (${workspaceId})`,
+      `WorkspaceService.update - request : (${request.title}, ${request.description})  - account : (${account.name}, ${account.email}) - workspace : (${workspace.title})`,
     );
-    let workspace = await this.existingWorkspace(workspaceId);
-
-    if (account.id !== workspace.accountId) {
-      throw new HttpException('Unauthorized!', 401);
-    }
 
     const updateRequest: WorkspaceUpdateRequest =
       this.validationService.validate(WorkspaceValidation.UPDATE, request);
@@ -100,7 +95,7 @@ export class WorkspaceService {
     workspace = await this.prismaService.workspace.update({
       where: {
         accountId: account.id,
-        id: workspaceId,
+        id: workspace.id,
       },
       data: workspace,
     });
@@ -118,9 +113,6 @@ export class WorkspaceService {
       where: { id: workspaceId, accountId: account.id },
       include: { Board: true },
     });
-    if (account.id !== workspace.accountId) {
-      throw new HttpException('Unauthorized!', 401);
-    }
 
     return this.toWorkspaceResponse(workspace, true);
   }
@@ -138,20 +130,16 @@ export class WorkspaceService {
 
   async delete(
     account: Account,
-    workspaceId: string,
+    workspace: Workspace,
   ): Promise<WorkspaceResponse> {
     console.log(
-      `WorkspaceService.delete - account : (${account.name}, ${account.email}) - workspaceId : (${workspaceId})`,
+      `WorkspaceService.delete - account : (${account.name}, ${account.email}) - workspace : (${workspace.title})`,
     );
-    let workspace = await this.existingWorkspace(workspaceId);
-    if (account.id !== workspace.accountId) {
-      throw new HttpException('Unauthorized!', 401);
-    }
 
     workspace = await this.prismaService.workspace.delete({
       where: {
         accountId: account.id,
-        id: workspaceId,
+        id: workspace.id,
       },
     });
 

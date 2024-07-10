@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { Account, Workspace } from '@prisma/client';
 
 import { WorkspaceService } from './workspace.service';
 import { WebResponse } from '../model/web.model';
@@ -16,7 +17,7 @@ import {
   WorkspaceResponse,
 } from '../model/workspace.model';
 import { Auth } from '../common/auth/auth.decorator';
-import { Account } from '@prisma/client';
+import { WorkspaceData } from '../common/workspace/workspace.decorator';
 
 @Controller('/api/workspace')
 export class WorkspaceController {
@@ -39,12 +40,12 @@ export class WorkspaceController {
   async update(
     @Auth() account: Account,
     @Body() request: WorkspaceCreateRequest,
-    @Param('workspaceId') workspaceId: string,
+    @WorkspaceData() workspace: Workspace,
   ): Promise<WebResponse<WorkspaceResponse>> {
     const result = await this.workspaceService.update(
       account,
       request,
-      workspaceId,
+      workspace,
     );
     return {
       data: result,
@@ -85,9 +86,9 @@ export class WorkspaceController {
   @HttpCode(200)
   async delete(
     @Auth() account: Account,
-    @Param('workspaceId') workspaceId: string,
+    @WorkspaceData() workspace: Workspace,
   ): Promise<WebResponse<WorkspaceResponse>> {
-    const result = await this.workspaceService.delete(account, workspaceId);
+    const result = await this.workspaceService.delete(account, workspace);
     return {
       data: result,
       message: 'Workspace has been deleted!',
