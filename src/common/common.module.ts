@@ -6,6 +6,10 @@ import { PrismaService } from './prisma/prisma.service';
 import { ValidationService } from './validation/validation.service';
 import { ErrorFilter } from './error/error.filter';
 import { AuthMiddleware } from './auth/auth.middleware';
+import { TaskController } from '../task/task.controller';
+import { WorkspaceMiddleware } from './workspace/workspace.middleware';
+import { BoardMiddleware } from './board/board.middleware';
+import { TaskMiddleware } from './task/task.middleware';
 
 @Global()
 @Module({
@@ -23,5 +27,8 @@ import { AuthMiddleware } from './auth/auth.middleware';
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(AuthMiddleware).forRoutes('/api/*');
+    consumer
+      .apply(WorkspaceMiddleware, BoardMiddleware, TaskMiddleware)
+      .forRoutes(TaskController);
   }
 }
