@@ -96,7 +96,7 @@ export class AccountService {
         },
       });
 
-      this.resendService.sendAccountPassword(account.email, password);
+      // this.resendService.sendAccountPassword(account.email, password);
     } else if (registerRequest.provider === 'Credentials') {
       registerRequest.password = await bcrypt.hash(
         registerRequest.password,
@@ -235,6 +235,21 @@ export class AccountService {
     await this.prismaService.account_Verification.deleteMany({
       where: { email: account.email },
     });
+
+    return this.toAccountResponse(account, 'required');
+  }
+
+  async getAccountByEmail(email: string): Promise<AccountResponse> {
+    console.log(`AccountService.getAccountById - account email : (${email})`);
+    const account = await this.prismaService.account.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!account) {
+      throw new HttpException('Account Not Found!', 404);
+    }
 
     return this.toAccountResponse(account, 'required');
   }

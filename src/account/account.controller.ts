@@ -6,6 +6,7 @@ import {
   HttpCode,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 
 import { AccountService } from './account.service';
@@ -69,6 +70,16 @@ export class AccountController {
     @Auth() account: Account,
   ): Promise<WebResponse<AccountResponse>> {
     const result = await this.accountService.getCurrentLogin(account);
+    return {
+      data: result,
+    };
+  }
+
+  @Get('/email')
+  async getAccountByEmail(
+    @Query('email') email: string,
+  ): Promise<WebResponse<AccountResponse>> {
+    const result = await this.accountService.getAccountByEmail(email);
     return {
       data: result,
     };
