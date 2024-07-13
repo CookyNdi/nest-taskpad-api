@@ -92,7 +92,7 @@ export class AccountService {
       await this.prismaService.account_Verification.create({
         data: {
           email: account.email,
-          expire: new Date(),
+          expire: new Date(Date.now() + 15 * 60000),
           token: uuid(),
         },
       });
@@ -115,7 +115,7 @@ export class AccountService {
     });
 
     if (!existingAccount) {
-      throw new HttpException('Email or Password invalid!', 401);
+      throw new HttpException('Email or Password invalid!', 400);
     }
 
     if (!existingAccount.emailVerified) {
@@ -131,7 +131,7 @@ export class AccountService {
           await this.prismaService.account_Verification.create({
             data: {
               email: existingAccount.email,
-              expire: new Date(),
+              expire: new Date(Date.now() + 15 * 60000),
               token: uuid(),
             },
           });
@@ -154,7 +154,7 @@ export class AccountService {
     );
 
     if (!isValidPassword) {
-      throw new HttpException('Email or Password invalid!', 401);
+      throw new HttpException('Email or Password invalid!', 400);
     }
 
     const account = await this.prismaService.account.update({
@@ -203,6 +203,10 @@ export class AccountService {
     account = await this.prismaService.account.update({
       where: { id: account.id },
       data: { emailVerified: true },
+    });
+
+    await this.prismaService.account_Verification.deleteMany({
+      where: { email: account.email },
     });
 
     return this.toAccountResponse(account, 'required');
