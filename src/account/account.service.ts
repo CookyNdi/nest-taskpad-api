@@ -175,19 +175,27 @@ export class AccountService {
       }
     }
 
-    const isValidPassword = await bcrypt.compare(
-      loginRequest.password,
-      existingAccount.password,
-    );
+    let account: Account;
+    if (loginRequest.provider === 'Oauth') {
+      account = await this.prismaService.account.update({
+        where: { email: loginRequest.email },
+        data: { token: uuid() },
+      });
+    } else if (loginRequest.provider === 'Credentials') {
+      const isValidPassword = await bcrypt.compare(
+        loginRequest.password,
+        existingAccount.password,
+      );
 
-    if (!isValidPassword) {
-      throw new HttpException('Email or Password invalid!', 400);
+      if (!isValidPassword) {
+        throw new HttpException('Email or Password invalid!', 400);
+      }
+
+      account = await this.prismaService.account.update({
+        where: { email: loginRequest.email },
+        data: { token: uuid() },
+      });
     }
-
-    const account = await this.prismaService.account.update({
-      where: { email: loginRequest.email },
-      data: { token: uuid() },
-    });
 
     return this.toAccountResponse(account, 'withToken');
   }

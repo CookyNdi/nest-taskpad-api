@@ -18,6 +18,7 @@ export class AccountRegisterRequest {
 export class AccountLoginRequest {
   email: string;
   password: string;
+  provider: string;
 }
 
 export class AccountUpdateAvatarRequest {
