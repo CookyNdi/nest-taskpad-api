@@ -82,22 +82,49 @@ export class AccountService {
 
     await this.existingEmailCheck(registerRequest.email);
 
-    registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
+    let account: Account;
 
-    const account = await this.prismaService.account.create({
-      data: registerRequest,
-    });
-
-    const account_Verification =
-      await this.prismaService.account_Verification.create({
+    if (registerRequest.provider === 'Oauth') {
+      const password = 'random password generate and send to email';
+      account = await this.prismaService.account.create({
         data: {
-          email: account.email,
-          expire: new Date(Date.now() + 15 * 60000),
-          token: uuid(),
+          name: registerRequest.name,
+          email: registerRequest.email,
+          password: await bcrypt.hash(password, 10),
+          image_url: registerRequest.image_url,
+          emailVerified: true,
         },
       });
 
-    this.resendService.sendMail(account.email, account_Verification.token);
+      this.resendService.sendAccountPassword(account.email, password);
+    } else if (registerRequest.provider === 'Credentials') {
+      registerRequest.password = await bcrypt.hash(
+        registerRequest.password,
+        10,
+      );
+
+      account = await this.prismaService.account.create({
+        data: {
+          name: registerRequest.name,
+          email: registerRequest.email,
+          password: registerRequest.password,
+        },
+      });
+
+      const account_Verification =
+        await this.prismaService.account_Verification.create({
+          data: {
+            email: account.email,
+            expire: new Date(Date.now() + 15 * 60000),
+            token: uuid(),
+          },
+        });
+
+      this.resendService.sendEmailVerification(
+        account.email,
+        account_Verification.token,
+      );
+    }
 
     return this.toAccountResponse(account, 'required');
   }
@@ -135,7 +162,7 @@ export class AccountService {
               token: uuid(),
             },
           });
-        this.resendService.sendMail(
+        this.resendService.sendEmailVerification(
           existingAccount.email,
           account_Verification.token,
         );

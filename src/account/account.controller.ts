@@ -34,7 +34,7 @@ export class AccountController {
     const result = await this.accountService.register(request);
     return {
       data: result,
-      message: 'Confirmation email sent!',
+      message: 'Account Created Succcessfully!',
     };
   }
 

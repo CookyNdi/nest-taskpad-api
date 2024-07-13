@@ -11,6 +11,8 @@ export class AccountRegisterRequest {
   name: string;
   email: string;
   password: string;
+  image_url?: string;
+  provider: string;
 }
 
 export class AccountLoginRequest {

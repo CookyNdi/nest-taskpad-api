@@ -7,13 +7,22 @@ const domain = process.env.NEXT_PUBLIC_APP_URL;
 
 @Injectable()
 export class ResendService {
-  async sendMail(email: string, token: string) {
+  async sendEmailVerification(email: string, token: string) {
     const confirmLink = `${domain}/auth/new-verification?token=${token}`;
     resendInstance.emails.send({
       from: 'mail@webzdev.my.id',
       to: email,
       subject: 'Confirm your email',
       html: `<p>Click <a href="${confirmLink}">here</a> to confirm email.</p>`,
+    });
+  }
+
+  async sendAccountPassword(email: string, password: string) {
+    resendInstance.emails.send({
+      from: 'mail@webzdev.my.id',
+      to: email,
+      subject: 'Your Account Password',
+      html: `<p>Your account password: ${password}, this password is random generate using ...</p>`,
     });
   }
 }
