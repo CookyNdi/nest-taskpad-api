@@ -12,13 +12,11 @@ export class AccountRegisterRequest {
   email: string;
   password: string;
   image_url?: string;
-  provider: string;
 }
 
 export class AccountLoginRequest {
   email: string;
   password: string;
-  provider: string;
 }
 
 export class AccountUpdateAvatarRequest {

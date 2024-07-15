@@ -82,49 +82,29 @@ export class AccountService {
 
     await this.existingEmailCheck(registerRequest.email);
 
-    let account: Account;
+    registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
-    if (registerRequest.provider === 'Oauth') {
-      const password = 'random password generate and send to email';
-      account = await this.prismaService.account.create({
-        data: {
-          name: registerRequest.name,
-          email: registerRequest.email,
-          password: await bcrypt.hash(password, 10),
-          image_url: registerRequest.image_url,
-          emailVerified: true,
-        },
-      });
+    const account = await this.prismaService.account.create({
+      data: {
+        name: registerRequest.name,
+        email: registerRequest.email,
+        password: registerRequest.password,
+      },
+    });
 
-      // this.resendService.sendAccountPassword(account.email, password);
-    } else if (registerRequest.provider === 'Credentials') {
-      registerRequest.password = await bcrypt.hash(
-        registerRequest.password,
-        10,
-      );
+    // const account_Verification =
+    //   await this.prismaService.account_Verification.create({
+    //     data: {
+    //       email: account.email,
+    //       expire: new Date(Date.now() + 15 * 60000),
+    //       token: uuid(),
+    //     },
+    //   });
 
-      account = await this.prismaService.account.create({
-        data: {
-          name: registerRequest.name,
-          email: registerRequest.email,
-          password: registerRequest.password,
-        },
-      });
-
-      const account_Verification =
-        await this.prismaService.account_Verification.create({
-          data: {
-            email: account.email,
-            expire: new Date(Date.now() + 15 * 60000),
-            token: uuid(),
-          },
-        });
-
-      this.resendService.sendEmailVerification(
-        account.email,
-        account_Verification.token,
-      );
-    }
+    // this.resendService.sendEmailVerification(
+    //   account.email,
+    //   account_Verification.token,
+    // );
 
     return this.toAccountResponse(account, 'required');
   }
@@ -175,27 +155,19 @@ export class AccountService {
       }
     }
 
-    let account: Account;
-    if (loginRequest.provider === 'Oauth') {
-      account = await this.prismaService.account.update({
-        where: { email: loginRequest.email },
-        data: { token: uuid() },
-      });
-    } else if (loginRequest.provider === 'Credentials') {
-      const isValidPassword = await bcrypt.compare(
-        loginRequest.password,
-        existingAccount.password,
-      );
+    const isValidPassword = await bcrypt.compare(
+      loginRequest.password,
+      existingAccount.password,
+    );
 
-      if (!isValidPassword) {
-        throw new HttpException('Email or Password invalid!', 400);
-      }
-
-      account = await this.prismaService.account.update({
-        where: { email: loginRequest.email },
-        data: { token: uuid() },
-      });
+    if (!isValidPassword) {
+      throw new HttpException('Email or Password invalid', 400);
     }
+
+    const account = await this.prismaService.account.update({
+      where: { email: loginRequest.email },
+      data: { token: uuid() },
+    });
 
     return this.toAccountResponse(account, 'withToken');
   }
