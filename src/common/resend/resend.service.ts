@@ -17,6 +17,15 @@ export class ResendService {
     });
   }
 
+  async sendEmailVerificationToken(email: string, token: string) {
+    resendInstance.emails.send({
+      from: 'mail@webzdev.my.id',
+      to: email,
+      subject: 'Confirm your email',
+      html: `<p>Your Token : ${token}</p>`,
+    });
+  }
+
   async sendAccountPassword(email: string, password: string) {
     resendInstance.emails.send({
       from: 'mail@webzdev.my.id',

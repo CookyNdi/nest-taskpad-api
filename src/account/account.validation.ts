@@ -26,9 +26,13 @@ export class AccountValidation {
     password: z.string().min(1).max(20),
     email: z.string().min(1).max(100).email(),
     old_email: z.string().min(1).max(100).email(),
+    email_verification_token: z.string().min(1).max(100),
   });
   static readonly UPDATE_NAME: ZodType = z.object({
     name: z.string().min(1).max(100),
+  });
+  static readonly SEND_EMAIL_VERIFICATION_TOKEN: ZodType = z.object({
+    email: z.string().min(1).max(100).email(),
   });
   static readonly EMAIL_VERIFICATION: ZodType = z.object({
     token: z.string().min(1).max(100),

@@ -14,6 +14,7 @@ import {
   AccountUpdateEmail,
   AccountUpdateName,
   AccountUpdatePassword,
+  sendEmailVerificationTokenRequest,
 } from '../model/account.model';
 import { AccountValidation } from './account.validation';
 import { ResendService } from '../common/resend/resend.service';
@@ -92,19 +93,19 @@ export class AccountService {
       },
     });
 
-    // const account_Verification =
-    //   await this.prismaService.account_Verification.create({
-    //     data: {
-    //       email: account.email,
-    //       expire: new Date(Date.now() + 15 * 60000),
-    //       token: uuid(),
-    //     },
-    //   });
+    const account_Verification =
+      await this.prismaService.account_Verification.create({
+        data: {
+          email: account.email,
+          expire: new Date(Date.now() + 15 * 60000),
+          token: uuid(),
+        },
+      });
 
-    // this.resendService.sendEmailVerification(
-    //   account.email,
-    //   account_Verification.token,
-    // );
+    this.resendService.sendEmailVerification(
+      account.email,
+      account_Verification.token,
+    );
 
     return this.toAccountResponse(account, 'required');
   }
@@ -299,13 +300,31 @@ export class AccountService {
     request: AccountUpdateEmail,
   ): Promise<AccountResponse> {
     console.log(
-      `AccountService.updateEmail - account : (${account.name}, ${account.email}) - request : {${request.email}}`,
+      `AccountService.updateEmail - account : (${account.name}, ${account.email}) - request : {${request.email}, ${request.email_verification_token}}`,
     );
     const updateEmailRequest: AccountUpdateEmail =
       this.validationService.validate(AccountValidation.UPDATE_EMAIL, request);
 
     if (updateEmailRequest.old_email !== account.email) {
-      throw new HttpException('Your old email is wrong!', 400);
+      throw new HttpException('Your old email is not match!', 400);
+    }
+
+    if (!updateEmailRequest.email_verification_token) {
+      throw new HttpException('Invalid verification token', 400);
+    }
+
+    const accountVerification =
+      await this.prismaService.account_Verification.findFirst({
+        where: { token: updateEmailRequest.email_verification_token },
+      });
+
+    if (!accountVerification) {
+      throw new HttpException('Token does not exist!', 400);
+    }
+
+    const hasExpired = new Date(accountVerification.expire) < new Date();
+    if (hasExpired) {
+      throw new HttpException('Token has expired!', 400);
     }
 
     const isValidPassword = await bcrypt.compare(
@@ -313,12 +332,8 @@ export class AccountService {
       account.password,
     );
     if (!isValidPassword) {
-      throw new HttpException('Your password is wrong!', 400);
+      throw new HttpException('Your password is not match!', 400);
     }
-
-    await this.existingEmailCheck(updateEmailRequest.email);
-
-    // TODO : varify email using resend
 
     account = await this.prismaService.account.update({
       where: { id: account.id },
@@ -327,7 +342,41 @@ export class AccountService {
       },
     });
 
+    await this.prismaService.account_Verification.deleteMany({
+      where: { email: account.email },
+    });
+
     return this.toAccountResponse(account, 'required');
+  }
+
+  async sendEmailVerificationToken(
+    request: sendEmailVerificationTokenRequest,
+  ): Promise<boolean> {
+    console.log(
+      `AccountService.sendEmailVerificationToken - request : (${request.email})`,
+    );
+
+    const sendEmailVerificationRequest: sendEmailVerificationTokenRequest =
+      this.validationService.validate(
+        AccountValidation.SEND_EMAIL_VERIFICATION_TOKEN,
+        request,
+      );
+
+    const account_Verification =
+      await this.prismaService.account_Verification.create({
+        data: {
+          email: sendEmailVerificationRequest.email,
+          expire: new Date(Date.now() + 15 * 60000),
+          token: uuid(),
+        },
+      });
+
+    this.resendService.sendEmailVerificationToken(
+      account_Verification.email,
+      account_Verification.token,
+    );
+
+    return true;
   }
 
   async updateName(

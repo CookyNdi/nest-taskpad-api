@@ -30,8 +30,13 @@ export class AccountUpdatePassword {
 
 export class AccountUpdateEmail {
   email: string;
+  email_verification_token: string;
   old_email: string;
   password: string;
+}
+
+export class sendEmailVerificationTokenRequest {
+  email: string;
 }
 
 export class AccountUpdateName {

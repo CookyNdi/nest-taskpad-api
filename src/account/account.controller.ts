@@ -20,6 +20,7 @@ import {
   AccountUpdateEmail,
   AccountUpdateName,
   AccountUpdatePassword,
+  sendEmailVerificationTokenRequest,
 } from '../model/account.model';
 import { Auth } from '../common/auth/auth.decorator';
 import { Account } from '@prisma/client';
@@ -121,6 +122,17 @@ export class AccountController {
     return {
       data: result,
       message: 'Your Email has been updated',
+    };
+  }
+
+  @Post('/send-verification-token')
+  @HttpCode(200)
+  async sendVerificationToken(
+    @Body() request: sendEmailVerificationTokenRequest,
+  ): Promise<WebResponse<AccountResponse>> {
+    await this.accountService.sendEmailVerificationToken(request);
+    return {
+      message: 'Your Verfication Token Has Been Send To Your Account!',
     };
   }
 
